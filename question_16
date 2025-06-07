@@ -1,0 +1,9 @@
+<div>
+  <label for="year_input">Filter by Year:</label>
+  <input type="number" id="year_input" name="year">
+
+  <label for="sector_input">Filter by Sector:</label>
+  <input type="text" id="sector_input" name="sector">
+
+  <button type="button" onclick="saveFilters()" aria-label="Save filters">Save</button>
+</div>
