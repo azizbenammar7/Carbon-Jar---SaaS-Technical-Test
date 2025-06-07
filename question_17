@@ -1,0 +1,22 @@
+from fastapi import FastAPI , APIRouter
+
+app = FastAPI()
+
+v1_router = APIRouter(prefix="/api/v1")
+v2_router = APIRouter(prefix="/api/v2")
+
+@v1_router.get("/factors/{factor_id}")
+# PROBLEM: No versioning!
+async def get_factor_v1(factor_id: str):
+    return {"id": factor_id, "value": 1.23, "unit": "tCO2e/MWh"}
+
+
+@v2_router.get("/factors/{factor_id}")
+# PROBLEM: No versioning!
+async def get_factor_v2(factor_id: str):
+    return {"id": factor_id, "value": 1.23, "unit": "tCO2e/MWh" , "source": "IPCC 2023"}
+# PROBLEM: Needs a /api/v2/factors/{factor_id} endpoint
+#          with a different structure (e.g., adding a 'source' field).
+
+app.include_router(v1_router)
+app.include_router(v2_router)
