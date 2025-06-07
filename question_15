@@ -1,0 +1,21 @@
+import React, { Suspense } from 'react';
+
+const HeavyAnalyticsDashboard = React.lazy(() => import('./HeavyAnalyticsDashboard'));
+function App() {
+  const [showDashboard, setShowDashboard] = React.useState(false);
+
+  return (
+    <div>
+      <h1>Carbon Jar Portal</h1>
+      <button onClick={() => setShowDashboard(true)}>Show Dashboard</button>
+      
+      {/* Lazy-loaded + fallback UI */}
+      {showDashboard && (
+        <Suspense fallback={<div>Loading dashboard...</div>}>
+          <HeavyAnalyticsDashboard />
+        </Suspense>
+      )}
+    </div>
+  );
+}
+export default App;
