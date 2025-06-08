@@ -1,0 +1,25 @@
+| Option             | Use Case                              | Pros                                      | Cons                                             |
+| ------------------ | ------------------------------------- | ----------------------------------------- | ------------------------------------------------ |
+| **VPN**            | Secure connectivity over internet     | Easy to set up, flexible                  | Higher latency, depends on public internet       |
+| **Direct Connect** | Dedicated physical connection         | High performance, low latency, consistent | Expensive, longer setup                          |
+| **VPC Peering**    | Private connectivity between two VPCs | Low latency, private path                 | Cannot connect to on-premise directly (VPC only) |
+
+
+resource "aws_security_group_rule" "allow_all_from_onprem" {
+ type        = "ingress"
+ from_port   = 5432 # PROBLEM 1: Allows ALL ports.
+ to_port     = 5432
+ protocol    = "tcp" # PROBLEM 2: Allows ALL protocols.
+ cidr_blocks = ["10.100.0.0/16"] # Assume this is on-prem range.
+ security_group_id = "sg-123456"
+ description = "Allow all from On-Prem - VERY INSECURE!"
+ # PROBLEM 3: No logging/monitoring implied.
+}
+
+resource "aws_flow_log" "vpc_flow_log" {
+  log_destination_type = "cloud-watch-logs"
+  log_destination      = aws_cloudwatch_log_group.vpc_logs.arn
+  traffic_type         = "ACCEPT"
+  vpc_id               = "vpc-xx"
+}
+
