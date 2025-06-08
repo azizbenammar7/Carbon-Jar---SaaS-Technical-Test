@@ -1,0 +1,24 @@
+import time, random, logging
+import redis , json
+
+logging.basicConfig(level=logging.INFO)
+r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+
+def get_emission_factor_from_db(sector_id):
+    """ Simulates a slow DB read. """
+    time.sleep(0.2) # Simulate latency
+    logging.info(f"DB HIT for {sector_id}")
+    return {"factor": random.uniform(0.5, 5.0)}
+
+def get_factor(sector_id):
+  cache_key = f"emission_factor:{sector_id}"
+
+  cached_value=r.get(cache_key)
+  if cached_value:
+    logging.info(f"CACHE HIT for {sector_id}")
+    return json.loads(cached_value)
+    # PROBLEM: Always hits the slow DB. No caching!
+  return get_emission_factor_from_db(sector_id)
+
+  r.setex(cache_key, 60, json.dumps(result))
+  return result
