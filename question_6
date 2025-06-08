@@ -1,0 +1,44 @@
+from fastapi import FastAPI, HTTPException
+import time, random
+from prometheus_client import Counter, start_http_server
+from opentelemetry import trace
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+start_http_server(8001)
+
+carbon_calculations_total = Counter(
+    'carbon_calculations_total',
+    'Total number of carbon calculations performed'
+)
+
+trace.set_tracer_provider(
+    TracerProvider(
+        resource=Resource.create({SERVICE_NAME: "carbon-api"})
+    )
+)
+tracer = trace.get_tracer(__name__)
+
+span_processor = BatchSpanProcessor(ConsoleSpanExporter())
+trace.get_tracer_provider().add_span_processor(span_processor)
+
+app = FastAPI()
+
+FastAPIInstrumentor.instrument_app(app)
+# PROBLEM: No metrics, no tracing, no logging structure.
+
+@app.post("/calculate")
+async def calculate_emissions(data: dict):
+  with tracer.start_as_current_span("calculate_emissions_span"):
+    # Simulate work
+    processing_time = random.uniform(0.05, 0.5)
+    time.sleep(processing_time)
+
+    if random.random() < 0.05: # Simulate errors
+        raise HTTPException(status_code=500, detail="Calculation failed!")
+
+    carbon_calculations_total.inc()
+
+    return {"co2e": random.uniform(100, 1000)}
